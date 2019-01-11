@@ -19,7 +19,7 @@
   "dependencies": {
     "babelify": "^10.0.0",
     "browserify": "^16.2.3",
-    "globby": "^8.0.1",
+    "globby": "^9.0.0",
     "gulp": "^4.0.0",
     "gulp-sourcemaps": "^2.6.4",
     "gulp-uglify-es": "^1.0.4",
