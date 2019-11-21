@@ -3,6 +3,7 @@
 const gulp           = require('gulp');
 const glob           = require('@edenjs/glob');
 const babel          = require('@babel/core');
+const xtend          = require('xtend');
 const config         = require('config');
 const babelify       = require('babelify');
 const watchify       = require('watchify');
@@ -11,6 +12,7 @@ const gulpTerser     = require('gulp-terser');
 const gulpHeader     = require('gulp-header');
 const vinylBuffer    = require('vinyl-buffer');
 const vinylSource    = require('vinyl-source-stream');
+const browserifyinc  = require('browserify-incremental');
 const gulpSourcemaps = require('gulp-sourcemaps');
 const babelPresetEnv = require('@babel/preset-env');
 
@@ -41,7 +43,7 @@ class ServiceworkerTask {
     }
 
     // Browserify javascript
-    let b = browserify({
+    let b = browserify(xtend(browserifyinc.args, {
       paths         : global.importLocations,
       debug         : config.get('environment') === 'dev' && !config.get('noSourcemaps'),
       entries       : [require.resolve('@babel/polyfill'), ...await glob(files)],
@@ -49,6 +51,11 @@ class ServiceworkerTask {
       insertGlobals : true,
       cache         : {},
       packageCache  : {},
+    }));
+
+    // browserifyinc
+    browserifyinc(b, {
+      cacheFile : `${global.appRoot}/.edenjs/.cache/serviceworker.json`,
     });
 
     b = b.transform(babelify, {
