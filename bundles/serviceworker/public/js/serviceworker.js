@@ -40,7 +40,7 @@ class EdenServiceworker extends Events {
 
     // require offline
     // eslint-disable-next-line no-restricted-globals
-    if (self.config.offline) {
+    if ((self.config || {}).offline) {
       // require offline
       this.offline = new EdenOffline(this);
     }
