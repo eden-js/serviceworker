@@ -44,7 +44,7 @@ class EdenServiceworkerBuilder extends Events {
     // Emit on message
     this.channel.port1.onmessage = (event) => {
       // On message
-      this.emit(event.data.type, ...event.data.args);
+      this.emit(event.data.type, ...(event.data.args || []));
     };
   }
 

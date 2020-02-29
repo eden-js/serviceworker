@@ -35,7 +35,7 @@ class EdenServiceworker extends Events {
     // eslint-disable-next-line no-restricted-globals
     self.addEventListener('message', (event) => {
       // On message
-      this.emit(event.data.type, event.ports[0], ...event.data.args);
+      this.emit(event.data.type, event.ports[0], ...(event.data.args || []));
     });
 
     // require offline
