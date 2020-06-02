@@ -33,8 +33,9 @@ class ServiceworkerTask {
     const opts = {
       files,
 
-      dest       : `${global.appRoot}/www/public/js`,
+      dest       : `${global.appRoot}/www`,
       cache      : `${global.appRoot}/.edenjs/.cache/serviceworker.json`,
+      config     : config.get('serviceworker.config') || {},
       imports    : global.importLocations,
       browsers   : config.get('browserlist'),
       polyfill   : require.resolve('@babel/polyfill'),
@@ -60,6 +61,7 @@ class ServiceworkerTask {
     const babelify       = require('babelify');
     const browserify     = require('browserify');
     const gulpTerser     = require('gulp-terser');
+    const gulpHeader     = require('gulp-header');
     const vinylSource    = require('vinyl-source-stream');
     const vinylBuffer    = require('vinyl-buffer');
     const browserifyinc  = require('browserify-incremental');
@@ -99,13 +101,18 @@ class ServiceworkerTask {
 
     // Create job from browserify bundle
     let job = bundle
-      .pipe(vinylSource('app.min.js')) // Convert to gulp stream
+      .pipe(vinylSource('sw.js')) // Convert to gulp stream
       .pipe(vinylBuffer()); // Needed for terser, sourcemaps
 
     // Init gulpSourcemaps
     if (data.sourceMaps) {
       job = job.pipe(gulpSourcemaps.init({ loadMaps : true }));
     }
+
+    // Apply head to file
+    job = job.pipe(gulpHeader(`
+      self.config = ${JSON.stringify(data.config)};
+    `.trim(), false));
 
     // Pipe uglify
     job = job.pipe(gulpTerser({

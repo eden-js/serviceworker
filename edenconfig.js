@@ -1,8 +1,12 @@
 const config = {};
 
+// serviceworker
 config.serviceworker = {
   enable : true,
-  config : {},
+  config : {
+    routes  : [],
+    offline : false,
+  },
 };
 
 module.exports = config;
