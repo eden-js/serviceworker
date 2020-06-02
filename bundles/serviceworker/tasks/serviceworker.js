@@ -26,7 +26,7 @@ class ServiceworkerTask {
   /**
    * runs serviceworker
    *
-   * @param {Array} files 
+   * @param {Array} files
    */
   async run(files) {
     // set opts
@@ -37,6 +37,7 @@ class ServiceworkerTask {
       cache      : `${global.appRoot}/.edenjs/.cache/serviceworker.json`,
       config     : config.get('serviceworker.config') || {},
       imports    : global.importLocations,
+      version    : config.get('version'),
       browsers   : config.get('browserlist'),
       polyfill   : require.resolve('@babel/polyfill'),
       sourceMaps : config.get('environment') === 'dev' && !config.get('noSourcemaps'),
@@ -111,7 +112,7 @@ class ServiceworkerTask {
 
     // Apply head to file
     job = job.pipe(gulpHeader(`
-      self.config = ${JSON.stringify(data.config)};
+      self.config = ${JSON.stringify(Object.assign({}, data.config, { version : data.version, }))};
     `.trim(), false));
 
     // Pipe uglify
