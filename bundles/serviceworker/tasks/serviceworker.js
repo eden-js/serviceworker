@@ -36,6 +36,7 @@ class ServiceworkerTask {
       dest       : `${global.appRoot}/www`,
       cache      : `${global.appRoot}/.edenjs/.cache/serviceworker.json`,
       config     : config.get('serviceworker.config') || {},
+      domain     : config.get('domain'),
       imports    : global.importLocations,
       version    : config.get('version'),
       browsers   : config.get('browserlist'),
@@ -112,7 +113,7 @@ class ServiceworkerTask {
 
     // Apply head to file
     job = job.pipe(gulpHeader(`
-      self.config = ${JSON.stringify(Object.assign({}, data.config, { version : data.version, }))};
+      self.config = ${JSON.stringify(Object.assign({}, data.config, { version : data.version, domain : data.domain }))};
     `.trim(), false));
 
     // Pipe uglify
