@@ -26,6 +26,7 @@ class EdenOffline extends Events {
 
     // Bind methods
     this.build = this.build.bind(this);
+    this.version = null;
 
     // Build this
     this.building = this.build();
@@ -157,6 +158,18 @@ class EdenOffline extends Events {
 
       // config
       const config = await this.eden.config(true);
+
+      // check version
+      if (config.version === this.version) {
+        // installing false
+        this._installing = false;
+
+        // return
+        return;
+      }
+
+      // set version
+      this.version = config.version;
 
       // install offline cache
       this.eden.log('info', 'installing offline cache');
