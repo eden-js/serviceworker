@@ -1,12 +1,13 @@
 // Require local class dependencies
-const Controller = require('controller');
+import config from 'config';
+import Controller from 'controller';
 
 /**
  * Create Serviceworker Controller
  *
  * @mount /
  */
-class ServiceworkerController extends Controller {
+export default class ServiceworkerController extends Controller {
   /**
    * Construct Admin Controller class
    */
@@ -33,11 +34,17 @@ class ServiceworkerController extends Controller {
     // render offline page
     res.render();
   }
-}
 
-/**
- * Exports Admin Controller class
- *
- * @type {ServiceworkerController}
- */
-module.exports = ServiceworkerController;
+  /**
+   * config action
+   * @route {get} /sw/config.json
+   *
+   * @param req 
+   * @param res 
+   * @param next 
+   */
+  configAction(req, res, next) {
+    // get config
+    res.json(config.get('serviceworker.config') || {});
+  }
+}

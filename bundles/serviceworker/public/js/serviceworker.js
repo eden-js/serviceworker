@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-globals */
 
 // Require events
 const Events = require('events');
@@ -21,6 +22,7 @@ class EdenServiceworker extends Events {
     // Bind methods
     this.send = this.send.bind(this);
     this.build = this.build.bind(this);
+    this.config = this.config.bind(this);
     this.endpoint = this.endpoint.bind(this);
 
     // Build this
@@ -32,18 +34,39 @@ class EdenServiceworker extends Events {
    */
   build() {
     // Emit on message
-    // eslint-disable-next-line no-restricted-globals
     self.addEventListener('message', (event) => {
       // On message
       this.emit(event.data.type, event.ports[0], ...(event.data.args || []));
     });
 
     // require offline
-    // eslint-disable-next-line no-restricted-globals
-    if ((self.config || {}).offline) {
+    if (self.config.offline) {
       // require offline
       this.offline = new EdenOffline(this);
     }
+  }
+
+  /**
+   * return config
+   *
+   * @param {*} noCache 
+   */
+  async config(noCache = false) {
+    // return config
+    if (!noCache && self.config) return self.config;
+
+    // await fetch
+    const res = await fetch(`https://${self.config.domain}/sw/config.json`);
+    const data = await res.json();
+
+    // keys
+    Object.keys(data).forEach((key) => {
+      // set config
+      self.config[key] = data[key];
+    });
+
+    // return config
+    return self.config;
   }
 
   /**

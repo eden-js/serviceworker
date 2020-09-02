@@ -40,14 +40,18 @@ class EdenOffline extends Events {
 
     // build routes
     this._routes = [];
+    this._installing = false;
 
     // loop routes
-    for (const route of self.config.routes) {
+    for (const route of self.config.routes || []) {
       // test route
-      route.test = toRegex(route.route);
+      const test = toRegex(route);
 
       // push route
-      this._routes.push(route);
+      this._routes.push({
+        route,
+        test,
+      });
     }
 
     // Adding `install` event listener
@@ -65,11 +69,14 @@ class EdenOffline extends Events {
     // Adding `fetch` event listener
     self.addEventListener('fetch', (event) => {
       // await install
-      event.respondWith(this.fetch(event));
+      if (!this._installing) event.respondWith(this.fetch(event));
     });
 
     // install offline cache
     this.eden.log('info', 'enabled offline');
+
+    // install
+    this.install();
   }
 
   /**
@@ -82,8 +89,9 @@ class EdenOffline extends Events {
   async fetch(event) {
     // get request
     const { request } = event;
+
     // eslint-disable-next-line max-len
-    const path = request.url.includes(self.config.domain) ? request.url.split(self.config.domain).pop() : null;
+    const path = request.url.includes(self.config.domain) ? request.url.split(self.config.domain).pop() : request.url;
 
     // match cache
     let response = await caches.match(request);
@@ -96,7 +104,7 @@ class EdenOffline extends Events {
       // find offline route
       const offline = this._routes.find((route) => {
         // test route
-        return route.test.test(path);
+        return route.route === path ? true : route.test.test(path);
       });
 
       // create offline response
@@ -105,7 +113,7 @@ class EdenOffline extends Events {
           url    : path,
           page   : offline ? offline.view : 'offline-page',
           path   : offline ? offline.path : path,
-          layout : `${(offline || {}).layout || 'main'}-layout`,
+          layout : 'main-layout',
         },
         page : {
           title : offline ? offline.title : 'Offline',
@@ -136,27 +144,36 @@ class EdenOffline extends Events {
    * @param  {Event} event
    */
   async install() {
-    // install offline cache
-    this.eden.log('info', 'installing offline cache');
+    // check installing
+    if (this._installing) return;
 
-    // open cache
-    const cache = await caches.open(self.config.version);
-    const files = self.config.offline.files || [];
+    // installing
+    this._installing = true;
 
-    // unshift files
-    files.unshift('/');
-    files.unshift('/offline');
-    files.unshift(`/public/js/app.min.js?v=${self.config.version}`);
-    files.unshift(`/public/css/app.min.css?v=${self.config.version}`);
+    // try/catch
+    try {
+      // skip waiting
+      self.skipWaiting();
 
-    // add all
-    await cache.addAll(files);
+      // config
+      const config = await this.eden.config(true);
 
-    // skip waiting
-    self.skipWaiting();
+      // install offline cache
+      this.eden.log('info', 'installing offline cache');
 
-    // install offline cache
-    this.eden.log('info', 'installed offline cache');
+      // open cache
+      const cache = await caches.open(config.version);
+      const files = config.routes || [];
+
+      // add all
+      await cache.addAll(files);
+
+      // install offline cache
+      this.eden.log('info', 'installed offline cache');
+    } catch (e) {}
+
+    // installing
+    this._installing = false;
   }
 
   /**
@@ -167,8 +184,29 @@ class EdenOffline extends Events {
    * @return {Promise}
    */
   async activate() {
+    // config
+    const config = await this.eden.config(true);
+
+    // build routes
+    this._routes = [];
+
+    // loop routes
+    for (const route of self.config.routes || []) {
+      // test route
+      const test = toRegex(route);
+
+      // push route
+      this._routes.push({
+        route,
+        test,
+      });
+    }
+
+    // install
+    await this.install();
+
     // install offline cache
-    this.eden.log('info', 'removing depricated offline cache');
+    this.eden.log('info', 'checking offline cache');
 
     // get cache keys
     const keys = await caches.keys();
@@ -176,11 +214,20 @@ class EdenOffline extends Events {
     // loop keys
     for (const key of keys) {
       // delete cache
-      if (key !== self.config.version) await caches.delete(key);
+      if (key !== config.version) {
+        // install offline cache
+        this.eden.log('info', `removing offline cache ${key}`);
+
+        // delete
+        await caches.delete(key);
+
+        // install offline cache
+        this.eden.log('info', `removed offline cache ${key}`);
+      }
     }
 
     // install offline cache
-    this.eden.log('info', 'removed depricated offline cache');
+    this.eden.log('info', 'checked offline cache');
 
     // claim clients
     self.clients.claim();
