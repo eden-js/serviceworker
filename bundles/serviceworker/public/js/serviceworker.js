@@ -44,12 +44,66 @@ class EdenServiceworker extends Events {
       // require offline
       this.offline = new EdenOffline(this);
     }
+
+    // send event
+    self.addEventListener('push', (event) => {
+      // body
+      let body = {};
+
+      // try/catch
+      try {
+        // get body
+        body = JSON.parse(event.data.text());
+      } catch (e) {}
+
+      // emit to this
+      this.emit(`push.${body.type}`, body.data, event);
+    });
+
+    // on push notification
+    this.on('push.notification', (data, event) => {
+      // wait for push to send
+      event.waitUntil(self.registration.showNotification(data.title, data.opts));
+    });
+
+    // on notification click
+    self.onnotificationclick = (event) => {
+      // close notification
+      event.notification.close();
+    
+      // This looks to see if the current is already open and
+      // focuses if it is
+      event.waitUntil(clients.matchAll({
+        type : 'window',
+      }).then((clientList) => {
+        // data
+        const data = event.notification.data || {};
+
+        // find client
+        const client = clientList.find((c) => {
+          // client
+          return 'focus' in c && (!data.url || c.url === data.url);
+        });
+
+        // focus
+        if (client) {
+          // focus
+          return client.focus();
+        }
+
+        // open window
+        if (clients.openWindow) {
+          // open url
+          clients.openWindow(data.url || '/');
+        }
+      }));
+    };
   }
 
   /**
    * return config
    *
-   * @param {*} noCache 
+   * @param {*} noCache
    */
   async config(noCache = false) {
     // return config

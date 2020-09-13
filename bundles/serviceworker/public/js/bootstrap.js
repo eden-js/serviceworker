@@ -35,9 +35,6 @@ class EdenServiceworkerBuilder extends Events {
     this.registration = await navigator.serviceWorker.register('/sw.js');
     this.ready = await navigator.serviceWorker.ready;
 
-    // Await subscription
-    this.subscription = await this.ready.pushManager.getSubscription();
-
     // Create message channel
     this.channel = new MessageChannel();
 

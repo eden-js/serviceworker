@@ -1,21 +1,17 @@
-
-// Require dependencies
-const config = require('config');
-
 /**
  * Build serviceworker task class
  *
  * @task serviceworker
  */
-class ServiceworkerTask {
+export default class ServiceworkerTask {
   /**
    * Construct serviceworker task class
    *
-   * @param {edenGulp} runner
+   * @param {edenGulp} cli
    */
-  constructor(runner) {
+  constructor(cli) {
     // Set private variables
-    this._runner = runner;
+    this.cli = cli;
     this._b = null;
 
     // Bind methods
@@ -35,20 +31,20 @@ class ServiceworkerTask {
 
       dest       : `${global.appRoot}/www`,
       cache      : `${global.appRoot}/.edenjs/.cache/serviceworker.json`,
-      config     : config.get('serviceworker.config') || {},
-      domain     : config.get('domain'),
+      config     : this.cli.get('config.serviceworker.config') || {},
+      domain     : this.cli.get('config.domain'),
       imports    : global.importLocations,
-      version    : config.get('version'),
-      browsers   : config.get('browserlist'),
+      version    : this.cli.get('config.version'),
+      browsers   : this.cli.get('config.browserlist'),
       polyfill   : require.resolve('@babel/polyfill'),
-      sourceMaps : config.get('environment') === 'dev' && !config.get('noSourcemaps'),
+      sourceMaps : this.cli.get('config.environment') === 'dev',
 
       appRoot  : global.appRoot,
       edenRoot : global.edenRoot,
     };
 
     // run in thread
-    return this._runner.thread(this.thread, opts);
+    return this.cli.thread(this.thread, opts);
   }
 
   /**
@@ -149,16 +145,6 @@ class ServiceworkerTask {
    */
   watch() {
     // Return files
-    return [
-      'public/js/serviceworker.js',
-      'public/js/serviceworker/**/*',
-    ];
+    return 'public/js/serviceworker/**/*';
   }
 }
-
-/**
- * Export serviceworker task
- *
- * @type {ServiceworkerTask}
- */
-module.exports = ServiceworkerTask;
