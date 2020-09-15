@@ -44,7 +44,10 @@ export default class ServiceworkerTask {
     };
 
     // run in thread
-    return this.cli.thread(this.thread, opts);
+    await this.cli.thread(this.thread, opts);
+
+    // done
+    return `compiled serviceworker!`;
   }
 
   /**
@@ -85,6 +88,7 @@ export default class ServiceworkerTask {
     b = b.transform(babelify, {
       presets : [
         babel.createConfigItem([babelPresetEnv, {
+          corejs  : 3,
           targets : {
             browsers : data.browsers,
           },
