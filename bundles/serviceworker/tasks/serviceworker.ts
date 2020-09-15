@@ -28,7 +28,6 @@ export default class ServiceworkerTask {
     // set opts
     const opts = {
       files,
-
       dest       : `${global.appRoot}/www`,
       cache      : `${global.appRoot}/.edenjs/.cache/serviceworker.json`,
       config     : this.cli.get('config.serviceworker.config') || {},
@@ -47,7 +46,7 @@ export default class ServiceworkerTask {
     await this.cli.thread(this.thread, opts);
 
     // done
-    return `compiled serviceworker!`;
+    return `${files.length} serviceworker entries compiled!`;
   }
 
   /**
@@ -88,7 +87,7 @@ export default class ServiceworkerTask {
     b = b.transform(babelify, {
       presets : [
         babel.createConfigItem([babelPresetEnv, {
-          corejs  : 3,
+          coreJs  : 3,
           targets : {
             browsers : data.browsers,
           },
@@ -110,6 +109,9 @@ export default class ServiceworkerTask {
     if (data.sourceMaps) {
       job = job.pipe(gulpSourcemaps.init({ loadMaps : true }));
     }
+
+    // make sure routes aren't repeated
+    if (data.config.routes) data.config.routes = Array.from(new Set(data.config.routes));
 
     // Apply head to file
     job = job.pipe(gulpHeader(`
@@ -149,6 +151,6 @@ export default class ServiceworkerTask {
    */
   watch() {
     // Return files
-    return 'public/js/serviceworker/**/*';
+    return '/serviceworkers/**/bootstrap.{js,jsx,ts,tsx}';
   }
 }

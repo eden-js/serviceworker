@@ -4,7 +4,7 @@
 const Events = require('events');
 
 // Require local dependencies
-const EdenOffline = require('serviceworker/public/js/serviceworker/offline');
+const EdenOffline = require('./lib/offline');
 
 /**
  * Build edenWorker eden
@@ -33,6 +33,9 @@ class EdenServiceworker extends Events {
    * Builds eden worker
    */
   build() {
+    // build serviceworker
+    this.log('info', 'building serviceworker');
+
     // Emit on message
     self.addEventListener('message', (event) => {
       // On message
