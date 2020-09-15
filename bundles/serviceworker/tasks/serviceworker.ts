@@ -87,7 +87,7 @@ export default class ServiceworkerTask {
     b = b.transform(babelify, {
       presets : [
         babel.createConfigItem([babelPresetEnv, {
-          coreJs  : 3,
+          corejs  : 3,
           targets : {
             browsers : data.browsers,
           },
