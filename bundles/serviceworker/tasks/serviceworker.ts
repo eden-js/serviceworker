@@ -57,7 +57,6 @@ export default class ServiceworkerTask {
     const gulp           = require('gulp');
     const glob           = require('@edenjs/glob');
     const xtend          = require('xtend');
-    const babel          = require('@babel/core');
     const babelify       = require('babelify');
     const browserify     = require('browserify');
     const gulpTerser     = require('gulp-terser');
@@ -66,7 +65,6 @@ export default class ServiceworkerTask {
     const vinylBuffer    = require('vinyl-buffer');
     const browserifyinc  = require('browserify-incremental');
     const gulpSourcemaps = require('gulp-sourcemaps');
-    const babelPresetEnv = require('@babel/preset-env');
 
     // Browserify javascript
     let b = browserify(xtend(browserifyinc.args, {
@@ -86,15 +84,19 @@ export default class ServiceworkerTask {
     // check environment
     b = b.transform(babelify, {
       presets : [
-        babel.createConfigItem([babelPresetEnv, {
-          corejs  : 3,
+        ['@babel/preset-env', {
           targets : {
-            browsers : data.browsers,
+            browsers : '> 0.25%, not dead',
           },
-          useBuiltIns : 'entry',
-        }]),
+        }],
+      ],
+      plugins : [
+        ['@babel/plugin-transform-typescript', {
+          strictMode : false,
+        }],
       ],
       sourceMaps : data.sourcemaps,
+      extensions : ['.es6', '.es', '.jsx', '.js', '.mjs', '.ts'],
     });
 
     // Create browserify bundle

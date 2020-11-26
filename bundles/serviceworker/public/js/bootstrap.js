@@ -31,18 +31,21 @@ class EdenServiceworkerBuilder extends Events {
     // Check can
     if (!this.can()) return;
 
-    // Register serviceworker
-    this.registration = await navigator.serviceWorker.register('/sw.js');
-    this.ready = await navigator.serviceWorker.ready;
+    // add try/catch
+    try {
+      // Register serviceworker
+      this.registration = await navigator.serviceWorker.register('/sw.js');
+      this.ready = await navigator.serviceWorker.ready;
 
-    // Create message channel
-    this.channel = new MessageChannel();
+      // Create message channel
+      this.channel = new MessageChannel();
 
-    // Emit on message
-    this.channel.port1.onmessage = (event) => {
-      // On message
-      this.emit(event.data.type, ...(event.data.args || []));
-    };
+      // Emit on message
+      this.channel.port1.onmessage = (event) => {
+        // On message
+        this.emit(event.data.type, ...(event.data.args || []));
+      };
+    } catch (e) {}
   }
 
   /**
