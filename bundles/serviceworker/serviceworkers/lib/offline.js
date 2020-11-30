@@ -2,8 +2,8 @@
 /* eslint-disable no-restricted-globals */
 
 // Require events
-const Events  = require('events');
-const toRegex = require('path-to-regexp');
+const { pathToRegexp } = require('path-to-regexp');
+const { EventEmitter } = require('events');
 
 // Cache polyfil to support cacheAPI in all browsers
 require('./cache-polyfill');
@@ -13,7 +13,7 @@ require('./cache-polyfill');
  *
  * @extends events
  */
-class EdenOffline extends Events {
+class EdenOffline extends EventEmitter {
   /**
    * Construct eden
    */
@@ -46,7 +46,7 @@ class EdenOffline extends Events {
     // loop routes
     for (const route of self.config.routes || []) {
       // test route
-      const test = toRegex(route);
+      const test = pathToRegexp(route);
 
       // push route
       this._routes.push({

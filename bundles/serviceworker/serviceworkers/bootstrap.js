@@ -1,7 +1,7 @@
 /* eslint-disable no-restricted-globals */
 
 // Require events
-const Events = require('events');
+const { EventEmitter } = require('events');
 
 // Require local dependencies
 const EdenOffline = require('./lib/offline');
@@ -11,7 +11,7 @@ const EdenOffline = require('./lib/offline');
  *
  * @extends events
  */
-class EdenServiceworker extends Events {
+class EdenServiceworker extends EventEmitter {
   /**
    * Construct eden
    */
