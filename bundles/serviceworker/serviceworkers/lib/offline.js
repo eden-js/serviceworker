@@ -46,7 +46,7 @@ class EdenOffline extends EventEmitter {
     // loop routes
     for (const route of self.config.routes || []) {
       // test route
-      const test = pathToRegexp(route);
+      const test = pathToRegexp(route, []);
 
       // push route
       this._routes.push({
