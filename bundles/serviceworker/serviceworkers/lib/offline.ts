@@ -1,19 +1,14 @@
-/* eslint-disable no-empty */
-/* eslint-disable no-restricted-globals */
-
 // Require events
-const { pathToRegexp } = require('path-to-regexp');
-const { EventEmitter } = require('events');
-
-// Cache polyfil to support cacheAPI in all browsers
-require('./cache-polyfill');
+import 'serviceworker-cache-polyfill';
+import { pathToRegexp } from 'path-to-regexp';
+import { EventEmitter } from 'events';
 
 /**
  * Build edenWorker eden
  *
  * @extends events
  */
-class EdenOffline extends EventEmitter {
+export default class EdenOffline extends EventEmitter {
   /**
    * Construct eden
    */
@@ -40,20 +35,11 @@ class EdenOffline extends EventEmitter {
     this.eden.log('info', 'enabling offline');
 
     // build routes
-    this._routes = [];
-    this._installing = false;
+    this.__routes = [];
+    this.__installing = false;
 
     // loop routes
-    for (const route of self.config.routes || []) {
-      // test route
-      const test = pathToRegexp(route, []);
-
-      // push route
-      this._routes.push({
-        route,
-        test,
-      });
-    }
+    this.register(self.config.routes);
 
     // Adding `install` event listener
     self.addEventListener('install', (event) => {
@@ -70,7 +56,7 @@ class EdenOffline extends EventEmitter {
     // Adding `fetch` event listener
     self.addEventListener('fetch', (event) => {
       // await install
-      if (!this._installing) event.respondWith(this.fetch(event));
+      if (!this.__installing) event.respondWith(this.fetch(event));
     });
 
     // install offline cache
@@ -103,9 +89,15 @@ class EdenOffline extends EventEmitter {
     // check response
     if (!response && path) {
       // find offline route
-      const offline = this._routes.find((route) => {
-        // test route
-        return route.route === path ? true : route.test.test(path);
+      const offline = this.__routes.find((route) => {
+        // check full
+        if (route.full) return route.route === path;
+
+        // check route
+        if (route.test && route.test.test) return route.test.test(path);
+        
+        // return false
+        return false;
       });
 
       // create offline response
@@ -146,10 +138,10 @@ class EdenOffline extends EventEmitter {
    */
   async install() {
     // check installing
-    if (this._installing) return;
+    if (this.__installing) return;
 
     // installing
-    this._installing = true;
+    this.__installing = true;
 
     // try/catch
     try {
@@ -162,7 +154,7 @@ class EdenOffline extends EventEmitter {
       // check version
       if (config.version === this.version) {
         // installing false
-        this._installing = false;
+        this.__installing = false;
 
         // return
         return;
@@ -186,7 +178,7 @@ class EdenOffline extends EventEmitter {
     } catch (e) {}
 
     // installing
-    this._installing = false;
+    this.__installing = false;
   }
 
   /**
@@ -201,19 +193,10 @@ class EdenOffline extends EventEmitter {
     const config = await this.eden.config(true);
 
     // build routes
-    this._routes = [];
+    this.__routes = [];
 
-    // loop routes
-    for (const route of self.config.routes || []) {
-      // test route
-      const test = pathToRegexp(route);
-
-      // push route
-      this._routes.push({
-        route,
-        test,
-      });
-    }
+    // routes
+    this.register(config.routes);
 
     // install
     await this.install();
@@ -245,11 +228,49 @@ class EdenOffline extends EventEmitter {
     // claim clients
     self.clients.claim();
   }
-}
 
-/**
- * Create edenWorker
- *
- * @type {edenWorker}
- */
-module.exports = EdenOffline;
+  /**
+   * register routes
+   *
+   * @param routes 
+   */
+  register(routes) {
+    // routes
+    if (!routes) return;
+  
+    // routes
+    for (const route of routes) {
+      // check route
+      if (route.includes('//')) {
+        // push exact match
+        this.__routes.push({
+          route,
+          full : true,
+          test : (url) => url === route,
+        });
+
+        // continue loop
+        continue;
+      }
+
+      // try/catch
+      try {
+        // test route
+        const test = pathToRegexp(route.split('?')[0], []);
+
+        // push route
+        this.__routes.push({
+          route,
+          test,
+        });
+      } catch (e) {
+        // push exact match
+        this.__routes.push({
+          route,
+          full : true,
+          test : (url) => url === route,
+        });
+      }
+    }
+  }
+}

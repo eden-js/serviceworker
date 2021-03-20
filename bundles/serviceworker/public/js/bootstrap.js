@@ -45,7 +45,7 @@ class EdenServiceworkerBuilder extends Events {
         // On message
         this.emit(event.data.type, ...(event.data.args || []));
       };
-    } catch (e) {}
+    } catch (e) { console.log(e) }
   }
 
   /**

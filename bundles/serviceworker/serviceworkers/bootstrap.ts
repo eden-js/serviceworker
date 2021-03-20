@@ -1,10 +1,8 @@
-/* eslint-disable no-restricted-globals */
-
 // Require events
-const { EventEmitter } = require('events');
+import { EventEmitter } from 'events';
 
 // Require local dependencies
-const EdenOffline = require('./lib/offline');
+import EdenOffline from './lib/offline.ts';
 
 /**
  * Build edenWorker eden
@@ -194,5 +192,4 @@ class EdenServiceworker extends EventEmitter {
  *
  * @type {edenWorker}
  */
-// eslint-disable-next-line no-restricted-globals
-self.eden = new EdenServiceworker();
+export default new EdenServiceworker();
