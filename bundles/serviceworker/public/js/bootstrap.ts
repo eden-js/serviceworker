@@ -1,14 +1,14 @@
 
 // Require events
-const uuid   = require('uuid').v4;
-const Events = require('events');
+import uuid from 'shortid';
+import { EventEmitter } from 'events';
 
 /**
  * Build eden worker class
  *
  * @extends events
  */
-class EdenServiceworkerBuilder extends Events {
+class EdenServiceworkerBuilder extends EventEmitter {
   /**
    * Construct eden worker
    */
@@ -108,10 +108,11 @@ class EdenServiceworkerBuilder extends Events {
   }
 }
 
-/**
- * Create new eden worker
- *
- * @type {edenWorker}
- */
-window.eden.serviceworker = new EdenServiceworkerBuilder();
-module.exports = window.eden.serviceworker;
+// build
+const builtServiceworker = new EdenServiceworkerBuilder();
+
+// set to eden
+window.eden.serviceworker = builtServiceworker;
+
+// export default
+export default builtServiceworker;
